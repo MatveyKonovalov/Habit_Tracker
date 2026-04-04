@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">HabitTracker</string>
+    <string name="max_strick">Максимальный стрик</string>
+    <string name="current_strick">Текущий стрик</string>
+    <string name="streak_statistics">Краткая статистика</string>
+    <string name="days">дней</string>
+    <string name="tasks_title">Мои задачи</string>
+    <string name="no_tasks">Нет задач</string>
+    <string name="add_task_hint">Добавьте новую задачу</string>
+    <string name="complete_task">Отметить как выполненную</string>
 </resources>
