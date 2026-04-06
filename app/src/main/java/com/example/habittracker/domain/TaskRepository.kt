@@ -8,4 +8,5 @@ interface TaskRepository {
     suspend fun completeTask(id: String)
     suspend fun getMaxStreak(): Int
     suspend fun getCurrentStreak(): Int
+    suspend fun loadData()
 }

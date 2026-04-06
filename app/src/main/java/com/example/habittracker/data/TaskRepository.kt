@@ -1,26 +1,65 @@
 package com.example.habittracker.data
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.example.habittracker.data.local.DayDao
+import com.example.habittracker.data.local.DayEntityMapper
+import com.example.habittracker.data.local.TaskDao
+import com.example.habittracker.data.local.TaskEntityMapper
 import com.example.habittracker.domain.models.Task
 import com.example.habittracker.domain.models.TaskPriority
 import com.example.habittracker.domain.TaskRepository
+import com.example.habittracker.domain.models.DayStatistics
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import java.time.LocalDate
 import javax.inject.Inject
 
-class TaskRepositoryImpl @Inject constructor() : TaskRepository {
-    private var tasks = listOf(
-        Task("1", "Сделать зарядку", "Утренняя зарядка 15 минут", false, TaskPriority.HIGH),
-        Task("2", "Прочитать книгу", "30 минут чтения", false, TaskPriority.MEDIUM),
-        Task("3", "Выучить урок", "Kotlin Flow", false, TaskPriority.HIGH),
-        Task("4", "Помыть посуду", "", true, TaskPriority.LOW),
-        Task("5", "Прогулка", "30 минут на свежем воздухе", false, TaskPriority.MEDIUM)
+class TaskRepositoryImpl @Inject constructor(
+    private val tasksDao: TaskDao,
+    private val dayDao: DayDao,
+    private val taskEntityMapper: TaskEntityMapper,
+    private val dayEntityMapper: DayEntityMapper
+) : TaskRepository {
+    private var tasks = emptyList<Task>()
+    @RequiresApi(Build.VERSION_CODES.O)
+    private var today = DayStatistics(
+        date = LocalDate.now().toString(),
+        dayOfWeek = LocalDate.now().dayOfWeek,
+        completedTasks = 0,
+        totalTasks = 0,
+        incompleteTasks = emptyList()
     )
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun getTasks(): Flow<List<Task>> = flow {
+        loadData()
         emit(tasks)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun loadData() {
+        val todayList = dayDao.getDayByData(today.date)
+        if (todayList.isEmpty()){
+            tasks = tasksDao.getAllTasks().map{taskEntityMapper.toDomain(it)}
+            today.totalTasks = tasks.size
+            today.incompleteTasks = tasks.map{it.id}
+            dayDao.insert(dayEntityMapper.toDataBase(today))
+        } else{
+            today = dayEntityMapper.toDomain(todayList.first())
+            tasks = tasksDao.getAllTasks().map{
+                taskEntityMapper.toDomain(it)
+                if (it.idTask !in today.incompleteTasks){
+                    taskEntityMapper.toDomain(it, true)
+                } else{
+                    taskEntityMapper.toDomain(it, false)
+                }
+            }
+
+        }
+
+    }
     override suspend fun completeTask(id: String) {
         tasks = tasks.map { task ->
             if (task.id == id) task.copy(isCompleted = true)
