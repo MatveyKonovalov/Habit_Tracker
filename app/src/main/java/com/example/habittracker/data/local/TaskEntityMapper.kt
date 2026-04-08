@@ -7,7 +7,7 @@ import javax.inject.Inject
 class TaskEntityMapper @Inject constructor(
     private val priorityMapper: PriorityMapper
 ){
-    fun toDomain(taskEntity: TaskEntity, complete: Boolean) = Task(
+    fun toDomain(taskEntity: TaskEntity, complete: Boolean = false) = Task(
         id = taskEntity.idTask,
         title = taskEntity.title,
         description = taskEntity.description,

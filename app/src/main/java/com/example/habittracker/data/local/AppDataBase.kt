@@ -6,13 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [TaskEntity::class, DayEntity::class],
+    entities = [TaskEntity::class, DayEntity::class, MaxStreakEntity::class],
     version = 1,
     exportSchema = false
 )
 abstract class AppDataBase: RoomDatabase(){
     abstract fun tasksDao(): TaskDao
     abstract fun daysDao(): DayDao
+
+    abstract fun maxStreakDao(): MaxStreakDao
 
     companion object{
         @Volatile

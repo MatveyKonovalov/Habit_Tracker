@@ -1,10 +1,10 @@
 package com.example.habittracker.presentation.viewmodels
 
-
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.habittracker.domain.TaskRepository
 import com.example.habittracker.domain.models.DayStatistics
 import com.example.habittracker.domain.models.IncompleteTask
-import com.example.habittracker.domain.models.TaskPriority
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class StatisticsViewModel @Inject constructor() : ViewModel() {
+class StatisticsViewModel @Inject constructor(
+    private val appRepository: TaskRepository
+) : ViewModel() {
 
     private val _statistics = MutableStateFlow<List<DayStatistics>>(emptyList())
     val statistics: StateFlow<List<DayStatistics>> = _statistics.asStateFlow()
@@ -24,60 +26,44 @@ class StatisticsViewModel @Inject constructor() : ViewModel() {
     private val _showDetailsDialog = MutableStateFlow(false)
     val showDetailsDialog: StateFlow<Boolean> = _showDetailsDialog.asStateFlow()
 
+    // Кэш задач для быстрого доступа
+    private val _tasksCache = MutableStateFlow<Map<String, IncompleteTask>>(emptyMap())
+    val tasksCache: StateFlow<Map<String, IncompleteTask>> = _tasksCache.asStateFlow()
+
+    // Состояние загрузки
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     init {
-        loadSampleStatistics()
+        loadStatistics()
     }
 
-    private fun loadSampleStatistics() {
-        _statistics.value = listOf(
-            DayStatistics(
-                date = "2024-01-15",
-                dayOfWeek = "Понедельник",
-                completedTasks = 3,
-                totalTasks = 5,
-                incompleteTasks = listOf(
-                    IncompleteTask("1", "Сделать зарядку", TaskPriority.HIGH),
-                    IncompleteTask("2", "Выучить Kotlin", TaskPriority.HIGH)
-                )
-            ),
-            DayStatistics(
-                date = "2024-01-16",
-                dayOfWeek = "Вторник",
-                completedTasks = 4,
-                totalTasks = 5,
-                incompleteTasks = listOf(
-                    IncompleteTask("3", "Прочитать книгу", TaskPriority.MEDIUM)
-                )
-            ),
-            DayStatistics(
-                date = "2024-01-17",
-                dayOfWeek = "Среда",
-                completedTasks = 2,
-                totalTasks = 5,
-                incompleteTasks = listOf(
-                    IncompleteTask("1", "Сделать зарядку", TaskPriority.HIGH),
-                    IncompleteTask("4", "Помыть посуду", TaskPriority.LOW),
-                    IncompleteTask("5", "Прогулка", TaskPriority.MEDIUM)
-                )
-            ),
-            DayStatistics(
-                date = "2024-01-18",
-                dayOfWeek = "Четверг",
-                completedTasks = 5,
-                totalTasks = 5,
-                incompleteTasks = emptyList()
-            ),
-            DayStatistics(
-                date = "2024-01-19",
-                dayOfWeek = "Пятница",
-                completedTasks = 3,
-                totalTasks = 5,
-                incompleteTasks = listOf(
-                    IncompleteTask("2", "Выучить Kotlin", TaskPriority.HIGH),
-                    IncompleteTask("6", "Позвонить маме", TaskPriority.MEDIUM)
-                )
-            )
-        )
+    private fun loadStatistics() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                _statistics.value = appRepository.getAllDays()
+                // Загружаем все невыполненные задачи для кэширования
+                loadIncompleteTasks()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private suspend fun loadIncompleteTasks() {
+        val allIncompleteTaskIds = _statistics.value.flatMap { it.incompleteTasks }.distinct()
+        val cache = mutableMapOf<String, IncompleteTask>()
+
+        for (taskId in allIncompleteTaskIds) {
+            try {
+                val task = appRepository.getTaskById(taskId)
+                cache[taskId] = task
+            } catch (e: Exception) {
+                // Игнорируем ошибки загрузки отдельных задач
+            }
+        }
+        _tasksCache.value = cache
     }
 
     fun showDayDetails(day: DayStatistics) {
@@ -88,5 +74,15 @@ class StatisticsViewModel @Inject constructor() : ViewModel() {
     fun closeDetailsDialog() {
         _selectedDay.value = null
         _showDetailsDialog.value = false
+    }
+
+    // Получить задачу по ID из кэша
+    fun getCachedTask(taskId: String): IncompleteTask? {
+        return _tasksCache.value[taskId]
+    }
+
+    // Обновить статистику (например, после выполнения задачи)
+    fun refreshStatistics() {
+        loadStatistics()
     }
 }

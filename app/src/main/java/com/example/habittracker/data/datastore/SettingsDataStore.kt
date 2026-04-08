@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,6 +29,7 @@ class SettingsDataStore @Inject constructor(
         private val USER_SURNAME = stringPreferencesKey("user_surname")
         private val IS_DARK_THEME = booleanPreferencesKey("is_dark_theme")
     }
+
 
     val isReminderEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[REMINDER_ENABLED] ?: false }

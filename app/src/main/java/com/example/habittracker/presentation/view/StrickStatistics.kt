@@ -31,10 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habittracker.R
-import com.example.habittracker.presentation.viewmodels.MainAppViewModel
+import com.example.habittracker.presentation.viewmodels.StatisticsViewModel
+import com.example.habittracker.presentation.viewmodels.TaskManagerViewModel
 
 @Composable
-fun ShowStaticStrick(viewModel: MainAppViewModel) {
+fun ShowStaticStrick(viewModel: TaskManagerViewModel) {
     val maxStrick by viewModel.maxStrick.collectAsStateWithLifecycle()
     val currentStrick by viewModel.currentStrick.collectAsStateWithLifecycle()
 

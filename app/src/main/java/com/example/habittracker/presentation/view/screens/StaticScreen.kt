@@ -1,6 +1,8 @@
 package com.example.habittracker.presentation.view.screens
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,15 +38,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habittracker.R
+import com.example.habittracker.data.local.DayOfWeekMapper
 import com.example.habittracker.domain.models.DayStatistics
 import com.example.habittracker.presentation.view.components.DayDetailsDialog
 import com.example.habittracker.presentation.viewmodels.StatisticsViewModel
+import java.time.DayOfWeek
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatisticsScreen(
     viewModel: StatisticsViewModel = hiltViewModel()
 ) {
     val statistics by viewModel.statistics.collectAsStateWithLifecycle()
+    println(statistics)
     val showDetailsDialog by viewModel.showDetailsDialog.collectAsStateWithLifecycle()
     val selectedDay by viewModel.selectedDay.collectAsStateWithLifecycle()
 
@@ -83,8 +89,15 @@ fun StatisticsScreen(
     // Диалог с деталями дня
     if (showDetailsDialog && selectedDay != null) {
         DayDetailsDialog(
-            day = selectedDay!!,
-            onDismiss = { viewModel.closeDetailsDialog() }
+            day = selectedDay ?: DayStatistics(
+                date = "2024.05.01",
+                dayOfWeek = DayOfWeek.SATURDAY,
+                completedTasks = 0,
+                totalTasks = 0,
+                incompleteTasks = emptyList()
+            ),
+            onDismiss = { viewModel.closeDetailsDialog() },
+            viewModel=viewModel
         )
     }
 }
@@ -160,7 +173,7 @@ private fun StatisticsCard(
             ) {
                 Column {
                     Text(
-                        text = day.dayOfWeek,
+                        text = day.dayOfWeek.toString(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

@@ -20,6 +20,6 @@ interface DayDao {
     @Update
     suspend fun updateDay(day: DayEntity): Int
 
-    @Query("SELECT * FROM days WHERE id_day = :id")
+    @Query("SELECT * FROM days WHERE id_day = :id ORDER BY id_day DESC")
     suspend fun getDayByData(id: String): List<DayEntity>
 }

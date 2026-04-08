@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,16 +44,20 @@ import com.example.habittracker.domain.models.Task
 import com.example.habittracker.domain.models.TaskPriority
 import com.example.habittracker.presentation.view.components.TaskDialog
 import com.example.habittracker.presentation.viewmodels.TaskManagerViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun TaskManagerScreen(
-    viewModel: TaskManagerViewModel = hiltViewModel()
+    viewModel: TaskManagerViewModel
 ) {
-    val tasks by viewModel.tasks.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel.change) {
+        viewModel.loadSampleTasks()
+    }
+    val tasks by viewModel.tasksView.collectAsStateWithLifecycle()
     val showDialog by viewModel.showDialog.collectAsStateWithLifecycle()
     val editingTask = viewModel.getEditingTask()
 
-    // ✅ Оборачиваем в Box для использования align
     Box(
         modifier = Modifier.fillMaxSize()
     ) {

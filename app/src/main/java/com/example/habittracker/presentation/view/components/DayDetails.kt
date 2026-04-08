@@ -1,5 +1,7 @@
 package com.example.habittracker.presentation.view.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,11 +17,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,17 +32,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habittracker.domain.models.DayStatistics
 import com.example.habittracker.domain.models.IncompleteTask
 import com.example.habittracker.domain.models.TaskPriority
 import com.example.habittracker.R
+import com.example.habittracker.data.local.DayOfWeekMapper
+import com.example.habittracker.presentation.viewmodels.StatisticsViewModel
 
-
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DayDetailsDialog(
     day: DayStatistics,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    viewModel: StatisticsViewModel
 ) {
+    val tasksCache by viewModel.tasksCache.collectAsStateWithLifecycle()
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -46,7 +56,7 @@ fun DayDetailsDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = day.dayOfWeek,
+                    text = day.dayOfWeek.toString(),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -139,8 +149,14 @@ fun DayDetailsDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.heightIn(max = 300.dp)
                     ) {
-                        items(day.incompleteTasks) { task ->
-                            IncompleteTaskItem(task = task)
+                        items(day.incompleteTasks) { taskId ->
+                            val task = tasksCache[taskId]
+                            if (task != null) {
+                                IncompleteTaskItem(task = task)
+                            } else {
+                                // Показываем заглушку, пока задача загружается
+                                IncompleteTaskPlaceholder(taskId = taskId)
+                            }
                         }
                     }
                 } else {
@@ -175,6 +191,8 @@ fun DayDetailsDialog(
         shape = RoundedCornerShape(24.dp)
     )
 }
+
+
 
 @Composable
 private fun IncompleteTaskItem(task: IncompleteTask) {
@@ -217,5 +235,30 @@ private fun IncompleteTaskItem(task: IncompleteTask) {
                 color = color
             )
         }
+    }
+}
+
+@Composable
+private fun IncompleteTaskPlaceholder(taskId: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(16.dp),
+            strokeWidth = 2.dp
+        )
+        Text(
+            text = "Загрузка задачи...",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

@@ -6,6 +6,7 @@ import com.example.habittracker.data.local.DayDao
 import com.example.habittracker.data.local.DayEntityMapper
 import com.example.habittracker.data.local.DayOfWeekMapper
 import com.example.habittracker.data.local.IncompleteTasksMapper
+import com.example.habittracker.data.local.MaxStreakDao
 import com.example.habittracker.data.local.PriorityMapper
 import com.example.habittracker.data.local.TaskEntityMapper
 import dagger.Module
@@ -46,8 +47,14 @@ abstract class LocalDataModule {
 
         @Provides
         @Singleton
-        fun provideDayEntityMapper(incompleteTasksMapper: IncompleteTasksMapper) =
-            DayEntityMapper(incompleteTasksMapper)
+        fun provideDayEntityMapper(incompleteTasksMapper: IncompleteTasksMapper, dayOfWeekMapper: DayOfWeekMapper) =
+            DayEntityMapper(
+                incompleteTasksMapper,
+                dayOfWeekMapper = dayOfWeekMapper
+            )
+        @Provides
+        @Singleton
+        fun provideMaxStreakDao(dataBase: AppDataBase) = dataBase.maxStreakDao()
 
         @Provides
         @Singleton

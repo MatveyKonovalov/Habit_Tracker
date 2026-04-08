@@ -1,4 +1,4 @@
-package com.example.habittracker.presentation
+package com.example.habittracker.presentation.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,15 +34,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habittracker.R
 import com.example.habittracker.domain.models.Task
 import com.example.habittracker.domain.models.TaskPriority
-import com.example.habittracker.presentation.viewmodels.MainAppViewModel
+import com.example.habittracker.presentation.viewmodels.TaskManagerViewModel
 
 @Composable
-fun TaskList(viewModel: MainAppViewModel) {
-    val taskList by viewModel.taskList.collectAsStateWithLifecycle()
+fun TaskList(
+    taskManagerViewModel: TaskManagerViewModel
+) {
+
+    LaunchedEffect(taskManagerViewModel.change) {
+        taskManagerViewModel.loadTodayTasks()
+    }
+    val taskList by taskManagerViewModel.tasks.collectAsStateWithLifecycle()
 
     Card(
         modifier = Modifier
@@ -73,7 +81,7 @@ fun TaskList(viewModel: MainAppViewModel) {
                     items(taskList.size) { index ->
                         TaskItem(
                             task = taskList[index],
-                            onCompleteClick = {viewModel.completeTask(taskList[index].id)}
+                            onCompleteClick = { taskManagerViewModel.completeTask(taskList[index].id) }
                         )
                     }
                 }
@@ -133,13 +141,15 @@ private fun TaskItem(
     task: Task,
     onCompleteClick: () -> Unit
 ) {
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = onCompleteClick
     ) {
         Row(
             modifier = Modifier
