@@ -29,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -38,19 +39,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.habittracker.R
-import com.example.habittracker.data.local.DayOfWeekMapper
+import com.example.habittracker.data.local.mappers.DayOfWeekMapper
 import com.example.habittracker.domain.models.DayStatistics
 import com.example.habittracker.presentation.view.components.DayDetailsDialog
 import com.example.habittracker.presentation.viewmodels.StatisticsViewModel
+import com.example.habittracker.presentation.viewmodels.TaskManagerViewModel
 import java.time.DayOfWeek
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatisticsScreen(
+    mainViewModel: TaskManagerViewModel,
     viewModel: StatisticsViewModel = hiltViewModel()
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.refreshStatistics()
+    }
     val statistics by viewModel.statistics.collectAsStateWithLifecycle()
-    println(statistics)
     val showDetailsDialog by viewModel.showDetailsDialog.collectAsStateWithLifecycle()
     val selectedDay by viewModel.selectedDay.collectAsStateWithLifecycle()
 
@@ -137,6 +142,7 @@ private fun StatisticsHeader() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun StatisticsCard(
     day: DayStatistics,
@@ -173,7 +179,7 @@ private fun StatisticsCard(
             ) {
                 Column {
                     Text(
-                        text = day.dayOfWeek.toString(),
+                        text = day.dayOfWeekRussian,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

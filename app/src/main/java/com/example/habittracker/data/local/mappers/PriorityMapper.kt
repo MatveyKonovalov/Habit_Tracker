@@ -1,8 +1,6 @@
-package com.example.habittracker.data.local
+package com.example.habittracker.data.local.mappers
 
-import androidx.navigationevent.NavigationEventDispatcher
 import com.example.habittracker.domain.models.TaskPriority
-
 import javax.inject.Inject
 
 class PriorityMapper @Inject constructor() {

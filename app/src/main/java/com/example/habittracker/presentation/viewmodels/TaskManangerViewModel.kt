@@ -40,18 +40,22 @@ class TaskManagerViewModel @Inject constructor(
     val showDialog: StateFlow<Boolean> = _showDialog.asStateFlow()
 
     private var _editingTask: Task? = null
-
+    private fun makeChange(){
+        _change.value ++
+    }
     fun loadTodayTasks(){
         viewModelScope.launch {
             appRepository.loadData()
             _tasksTodayComplete.value = appRepository.getTasks()
+            loadStreaks()
+            makeChange()
         }
 
     }
     fun loadSampleTasks() {
         viewModelScope.launch{
-            // TODO
             _tasksAll.value = appRepository.getAllTasks()
+            makeChange()
         }
     }
 
@@ -66,8 +70,8 @@ class TaskManagerViewModel @Inject constructor(
         _tasksAll.value += task
         viewModelScope.launch{
             appRepository.addTask(task)
+            makeChange()
         }
-        _change.value += 1
         closeDialog()
 
     }
@@ -82,9 +86,10 @@ class TaskManagerViewModel @Inject constructor(
         )
         viewModelScope.launch {
             appRepository.updateTask(task)
+            makeChange()
         }
 
-        _change.value += 1
+
         closeDialog()
     }
 
@@ -94,8 +99,10 @@ class TaskManagerViewModel @Inject constructor(
                 _tasksAll.value = _tasksAll.value.filter{it.id != id}
                 appRepository.deleteTaskById(id)
             }
+            makeChange()
+            loadStreaks()
         }
-        _change.value += 1
+
     }
 
     fun openAddDialog() {
@@ -115,21 +122,14 @@ class TaskManagerViewModel @Inject constructor(
 
     fun getEditingTask(): Task? = _editingTask
 
-    private fun loadStreaks() {
+    fun loadStreaks() {
+        viewModelScope.launch {
+            _currentStrick.value = appRepository.getCurrentStreak()
+        }
         viewModelScope.launch {
             _maxStrick.value = appRepository.getMaxStreak()
-            _currentStrick.value = appRepository.getCurrentStreak()
         }
-    }
 
-    private fun updateStreaks() {
-        viewModelScope.launch {
-            _currentStrick.value = appRepository.getCurrentStreak()
-            val max = appRepository.getMaxStreak()
-            if (max > _maxStrick.value) {
-                _maxStrick.value = max
-            }
-        }
     }
     fun completeTask(id: String){
         viewModelScope.launch {
@@ -138,12 +138,13 @@ class TaskManagerViewModel @Inject constructor(
                     task.copy(isCompleted = !task.isCompleted)
                 } else task
             }
-            _change.value += 1
+
             withContext(Dispatchers.IO){
                 appRepository.completeTask(id)
             }
-
-
+            loadStreaks()
+            makeChange()
         }
+
     }
 }

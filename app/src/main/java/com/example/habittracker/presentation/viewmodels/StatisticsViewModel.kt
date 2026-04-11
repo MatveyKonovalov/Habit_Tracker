@@ -20,6 +20,8 @@ class StatisticsViewModel @Inject constructor(
     private val _statistics = MutableStateFlow<List<DayStatistics>>(emptyList())
     val statistics: StateFlow<List<DayStatistics>> = _statistics.asStateFlow()
 
+    private val _change = MutableStateFlow(0)
+    val change = _change.asStateFlow()
     private val _selectedDay = MutableStateFlow<DayStatistics?>(null)
     val selectedDay: StateFlow<DayStatistics?> = _selectedDay.asStateFlow()
 
@@ -54,13 +56,10 @@ class StatisticsViewModel @Inject constructor(
     private suspend fun loadIncompleteTasks() {
         val allIncompleteTaskIds = _statistics.value.flatMap { it.incompleteTasks }.distinct()
         val cache = mutableMapOf<String, IncompleteTask>()
-
+        val allCurrentTasks = appRepository.getTasks().map{it.id}.toSet()
         for (taskId in allIncompleteTaskIds) {
-            try {
-                val task = appRepository.getTaskById(taskId)
-                cache[taskId] = task
-            } catch (e: Exception) {
-                // Игнорируем ошибки загрузки отдельных задач
+            if (taskId in allCurrentTasks){
+                cache[taskId] = appRepository.getTaskById(taskId)
             }
         }
         _tasksCache.value = cache
@@ -76,12 +75,7 @@ class StatisticsViewModel @Inject constructor(
         _showDetailsDialog.value = false
     }
 
-    // Получить задачу по ID из кэша
-    fun getCachedTask(taskId: String): IncompleteTask? {
-        return _tasksCache.value[taskId]
-    }
 
-    // Обновить статистику (например, после выполнения задачи)
     fun refreshStatistics() {
         loadStatistics()
     }

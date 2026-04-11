@@ -1,4 +1,4 @@
-package com.example.habittracker.data.local
+package com.example.habittracker.data.local.mappers
 
 import javax.inject.Inject
 

@@ -1,5 +1,7 @@
-package com.example.habittracker.data.local
+package com.example.habittracker.data.local.mappers
 
+import com.example.habittracker.data.local.mappers.PriorityMapper
+import com.example.habittracker.data.local.entities.TaskEntity
 import com.example.habittracker.domain.models.Task
 import com.example.habittracker.domain.models.TaskPriority
 import javax.inject.Inject

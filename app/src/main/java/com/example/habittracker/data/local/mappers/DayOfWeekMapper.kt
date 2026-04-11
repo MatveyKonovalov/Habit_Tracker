@@ -1,4 +1,4 @@
-package com.example.habittracker.data.local
+package com.example.habittracker.data.local.mappers
 
 import android.os.Build
 import androidx.annotation.RequiresApi

@@ -1,5 +1,6 @@
 package com.example.habittracker.presentation.view
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,7 +47,7 @@ fun TaskList(
     taskManagerViewModel: TaskManagerViewModel
 ) {
 
-    LaunchedEffect(taskManagerViewModel.change) {
+    LaunchedEffect(Unit) {
         taskManagerViewModel.loadTodayTasks()
     }
     val taskList by taskManagerViewModel.tasksTodayComplete.collectAsStateWithLifecycle()
@@ -149,7 +150,7 @@ private fun TaskItem(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        onClick = onCompleteClick
+
     ) {
         Row(
             modifier = Modifier

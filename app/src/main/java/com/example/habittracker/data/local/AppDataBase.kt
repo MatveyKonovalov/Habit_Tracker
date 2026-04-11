@@ -4,6 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.habittracker.data.local.daos.DayDao
+import com.example.habittracker.data.local.daos.MaxStreakDao
+import com.example.habittracker.data.local.daos.TaskDao
+import com.example.habittracker.data.local.entities.DayEntity
+import com.example.habittracker.data.local.entities.MaxStreakEntity
+import com.example.habittracker.data.local.entities.TaskEntity
 
 @Database(
     entities = [TaskEntity::class, DayEntity::class, MaxStreakEntity::class],

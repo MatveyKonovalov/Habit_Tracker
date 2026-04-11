@@ -52,7 +52,7 @@ fun MainScreen(
                 when (selectedScreen) {
                     "home" -> HomeScreen(viewModel = mainViewModel)
                     "tasks" -> TaskManagerScreen(viewModel = mainViewModel)
-                    "statistics" -> StatisticsScreen()
+                    "statistics" -> StatisticsScreen(mainViewModel = mainViewModel)
                     "settings" -> SettingsScreen()
                 }
             }

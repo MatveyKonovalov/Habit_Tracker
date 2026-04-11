@@ -2,13 +2,14 @@ package com.example.habittracker.di
 
 import android.content.Context
 import com.example.habittracker.data.local.AppDataBase
-import com.example.habittracker.data.local.DayDao
-import com.example.habittracker.data.local.DayEntityMapper
-import com.example.habittracker.data.local.DayOfWeekMapper
-import com.example.habittracker.data.local.IncompleteTasksMapper
-import com.example.habittracker.data.local.MaxStreakDao
-import com.example.habittracker.data.local.PriorityMapper
-import com.example.habittracker.data.local.TaskEntityMapper
+import com.example.habittracker.data.local.daos.DayDao
+import com.example.habittracker.data.local.mappers.DayEntityMapper
+import com.example.habittracker.data.local.mappers.DayOfWeekMapper
+import com.example.habittracker.data.local.mappers.IncompleteTasksMapper
+import com.example.habittracker.data.local.daos.MaxStreakDao
+import com.example.habittracker.data.local.helpers.WorkWithTimeHelper
+import com.example.habittracker.data.local.mappers.PriorityMapper
+import com.example.habittracker.data.local.mappers.TaskEntityMapper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -59,5 +60,9 @@ abstract class LocalDataModule {
         @Provides
         @Singleton
         fun provideDataMapper() = DayOfWeekMapper()
+
+        @Provides
+        @Singleton
+        fun provideWorkWithTimeHelper() = WorkWithTimeHelper()
     }
 }

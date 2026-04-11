@@ -1,4 +1,4 @@
-package com.example.habittracker.data.local
+package com.example.habittracker.data.local.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

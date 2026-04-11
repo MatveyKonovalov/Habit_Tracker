@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +38,7 @@ import com.example.habittracker.domain.models.DayStatistics
 import com.example.habittracker.domain.models.IncompleteTask
 import com.example.habittracker.domain.models.TaskPriority
 import com.example.habittracker.R
-import com.example.habittracker.data.local.DayOfWeekMapper
+import com.example.habittracker.data.local.mappers.DayOfWeekMapper
 import com.example.habittracker.presentation.viewmodels.StatisticsViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -48,7 +49,9 @@ fun DayDetailsDialog(
     viewModel: StatisticsViewModel
 ) {
     val tasksCache by viewModel.tasksCache.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel.change) {
 
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -155,7 +158,7 @@ fun DayDetailsDialog(
                                 IncompleteTaskItem(task = task)
                             } else {
                                 // Показываем заглушку, пока задача загружается
-                                IncompleteTaskPlaceholder(taskId = taskId)
+                                IncompleteTaskPlaceholder()
                             }
                         }
                     }
@@ -239,7 +242,7 @@ private fun IncompleteTaskItem(task: IncompleteTask) {
 }
 
 @Composable
-private fun IncompleteTaskPlaceholder(taskId: String) {
+private fun IncompleteTaskPlaceholder() {
     Row(
         modifier = Modifier
             .fillMaxWidth()

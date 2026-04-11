@@ -2,18 +2,20 @@ package com.example.habittracker.data
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.example.habittracker.data.local.DayDao
-import com.example.habittracker.data.local.DayEntityMapper
-import com.example.habittracker.data.local.MaxStreakDao
-import com.example.habittracker.data.local.MaxStreakEntity
-import com.example.habittracker.data.local.TaskDao
-import com.example.habittracker.data.local.TaskEntityMapper
+import com.example.habittracker.data.local.daos.DayDao
+import com.example.habittracker.data.local.mappers.DayEntityMapper
+import com.example.habittracker.data.local.daos.MaxStreakDao
+import com.example.habittracker.data.local.entities.MaxStreakEntity
+import com.example.habittracker.data.local.daos.TaskDao
+import com.example.habittracker.data.local.helpers.WorkWithTimeHelper
+import com.example.habittracker.data.local.mappers.TaskEntityMapper
 import com.example.habittracker.domain.models.Task
 import com.example.habittracker.domain.models.TaskPriority
 import com.example.habittracker.domain.TaskRepository
 import com.example.habittracker.domain.models.DayStatistics
 import com.example.habittracker.domain.models.IncompleteTask
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import javax.inject.Inject
@@ -23,7 +25,8 @@ class TaskRepositoryImpl @Inject constructor(
     private val dayDao: DayDao,
     private val taskEntityMapper: TaskEntityMapper,
     private val dayEntityMapper: DayEntityMapper,
-    private val maxStreakDao: MaxStreakDao
+    private val maxStreakDao: MaxStreakDao,
+    private val workWithTimeHelper: WorkWithTimeHelper
 ) : TaskRepository {
 
     private var tasks = emptyList<Task>()
@@ -47,7 +50,6 @@ class TaskRepositoryImpl @Inject constructor(
             val allTasksFromDb = tasksDao.getAllTasks().map { taskEntityMapper.toDomain(it) }
 
             if (existingDay.isEmpty()) {
-                // Новый день: все задачи невыполнены
                 tasks = allTasksFromDb.map { it.copy(isCompleted = false) }
 
                 today = DayStatistics(
@@ -85,11 +87,12 @@ class TaskRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllTasks(): List<Task>{
-        return withContext(Dispatchers.IO){
-            tasksDao.getAllTasks().map{taskEntityMapper.toDomain(it, false)}
+    override suspend fun getAllTasks(): List<Task> {
+        return withContext(Dispatchers.IO) {
+            tasksDao.getAllTasks().map { taskEntityMapper.toDomain(it, false) }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun completeTask(id: String) {
         withContext(Dispatchers.IO) {
@@ -162,14 +165,11 @@ class TaskRepositoryImpl @Inject constructor(
             // 2. Обновляем локальный список
             tasks = tasks.map {
                 if (it.id == task.id) {
-                    task.copy(isCompleted = it.isCompleted) // Сохраняем текущий статус выполнения
+                    task.copy(isCompleted = it.isCompleted)
                 } else {
                     it
                 }
             }
-
-            // 3. Статистика дня не меняется, так как статус выполнения не изменился
-            // Но если нужно обновить название/описание в today.incompleteTasks - не требуется
         }
     }
 
@@ -206,6 +206,7 @@ class TaskRepositoryImpl @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getMaxStreak(): Int {
         return withContext(Dispatchers.IO) {
             val max = maxStreakDao.getMaxStreak()
@@ -213,20 +214,36 @@ class TaskRepositoryImpl @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getCurrentStreak(): Int {
         return withContext(Dispatchers.IO) {
             val days = dayDao.getAllDay()
             var streak = 0
 
-            for (day in days) {
-                if (day.completedTasks > 0) {
-                    streak++
-                } else {
-                    break
+            if (days.isNotEmpty()) {
+                if (days.size > 1) {
+                    var currentDay = workWithTimeHelper.toDateTime(days.first().idDay)
+
+                    for (i in 1 until days.size) {
+                        val day = days[i]
+                        val dateI = workWithTimeHelper.toDateTime(day.idDay)
+                        if (day.completedTasks > 0 &&
+                            workWithTimeHelper.isNext(dateI, currentDay)) {
+                            streak++
+                            currentDay = dateI
+                        } else {
+                            break
+                        }
+                    }
                 }
             }
 
+            // Обновляем макс. стрик
             val max = maxStreakDao.getMaxStreak()
+            if (today.completedTasks > 0) {
+                streak += 1
+            }
+
             if (max.isEmpty()) {
                 maxStreakDao.insertMaxStreak(MaxStreakEntity(streak))
             } else if (max.first().maxStreak < streak) {
@@ -238,10 +255,24 @@ class TaskRepositoryImpl @Inject constructor(
         }
     }
 
+
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getAllDays(): List<DayStatistics> {
         return withContext(Dispatchers.IO) {
-            dayDao.getAllDay().map { dayEntity -> dayEntityMapper.toDomain(dayEntity) }
+            val allTasksId = getAllTasks().map{it.id}.toSet()
+
+            dayDao.getAllDay().map { dayEntity ->
+                val currentDay = dayEntityMapper.toDomain(dayEntity)
+                val actualTaskList = mutableListOf<String>()
+                for (task in currentDay.incompleteTasks){
+                    if (task in allTasksId){
+                        actualTaskList.add(task)
+                    }
+                }
+                val actualDay = currentDay.copy(incompleteTasks = actualTaskList)
+                dayDao.updateDay(dayEntityMapper.toDataBase(actualDay))
+                actualDay
+            }
         }
     }
 }

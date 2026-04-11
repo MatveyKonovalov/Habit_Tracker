@@ -1,9 +1,11 @@
-package com.example.habittracker.data.local
+package com.example.habittracker.data.local.mappers
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.habittracker.data.local.mappers.DayOfWeekMapper
+import com.example.habittracker.data.local.mappers.IncompleteTasksMapper
+import com.example.habittracker.data.local.entities.DayEntity
 import com.example.habittracker.domain.models.DayStatistics
-import com.example.habittracker.presentation.navigation.Screen
 import javax.inject.Inject
 
 class DayEntityMapper @Inject constructor(
