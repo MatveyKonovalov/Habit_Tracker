@@ -30,9 +30,8 @@ fun BottomNavigationBar(
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
             .height(100.dp)
-            .clip(RoundedCornerShape(28.dp)),
+            .clip(RoundedCornerShape(topEnd = 28.dp, topStart = 28.dp)),
         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
         tonalElevation = 4.dp,
     ) {
