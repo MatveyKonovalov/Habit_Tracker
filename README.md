@@ -14,7 +14,12 @@
   
 </div>
 
----
+<p align="center">
+  <img width="200" src="https://github.com/user-attachments/assets/a822b208-7c5f-4bb0-acf1-6cb447d4b73b" />&nbsp;&nbsp;&nbsp;&nbsp;
+  <img width="200" src="https://github.com/user-attachments/assets/251ab77a-1bc2-451b-bb83-4b06b27fe5e3" />&nbsp;&nbsp;&nbsp;&nbsp;
+  <img width="200" src="https://github.com/user-attachments/assets/764d9ca1-3437-4106-a94e-735ad739a5b4" />
+</p>
+
 
 ## 📱 О проекте
 
@@ -483,7 +488,6 @@ object LocalDataModule {
 | ✅ DI с Hilt | Завершено |
 | ✅ Фоновая синхронизация | Завершено |
 | 🟡 Экспорт/импорт данных | В планах |
-| 🟡 Unit тесты | В планах |
 
 ---
 
@@ -558,4 +562,3 @@ furnished to do so, subject to the following conditions:
   ***
   
 </div>
-```
